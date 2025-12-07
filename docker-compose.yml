@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   mongo:
     image: mongodb/mongodb-community-server:latest
@@ -8,20 +6,46 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_node
+    ports: 
+      - "5672:5672"
+      - "15672:15672"
+
   user-service:
-    build: ./userService
+    build:
+      context: ./userService
+    image: user-service
     container_name: user-service
     ports:
       - "3000:3000"
+    depends_on:
+      - mongo
+      - rabbitmq
+
   task-service:
-    build: ./taskService
+    build:
+      context: ./taskService
+    image: task-service
     container_name: task-service
     ports:
       - "3002:3002"
+    depends_on:
+      - mongo
+      - rabbitmq
+
   notification-service:
-    build: ./notificationService
+    build:
+      context: ./notificationService
+    image: notification-service
     container_name: notification-service
     ports:
       - "3003:3003"
+    depends_on:
+      - rabbitmq
+      - mongo
+
 volumes:
   mongo_data:
